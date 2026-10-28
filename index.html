@@ -9,6 +9,7 @@
   <script src="js/app.js" defer></script>
 </head>
 <body>
+<a class="skip-link" href="#mainContent">Saltar al contenido principal</a>
 <div class="app">
   <aside class="sidebar">
     <a class="logo" href="#" aria-label="Basket, inicio">Basket<span>.</span></a>
@@ -31,13 +32,13 @@
     </nav>
   </aside>
 
-  <main class="main">
+  <main class="main" id="mainContent" tabindex="-1">
     <header class="topbar">
       <label class="search">
         <span aria-hidden="true">🔍</span>
         <input id="search" type="search" aria-label="Buscar productos" placeholder="Buscar productos, marcas o tiendas...">
       </label>
-      <div class="avatar" aria-label="Perfil">JR</div>
+      <div class="avatar" role="img" aria-label="Avatar del perfil, iniciales JR">JR</div>
     </header>
 
     <section class="hero">
@@ -46,10 +47,11 @@
         <p>Todos tus productos y precios en un solo lugar.</p>
       </div>
       <div class="hero-actions">
-        <button class="secondary" id="buyAll" type="button">🛒 Comprar todo</button>
+        <button class="secondary" id="buyAll" type="button" aria-describedby="buyAllHelp">🛒 Comprar todo</button>
         <button class="primary" id="addProduct" type="button">＋ Añadir producto</button>
       </div>
     </section>
+    <p class="help-text" id="buyAllHelp">Marca como comprados todos los productos pendientes. No se realizará ningún pago.</p>
 
     <section class="stats" aria-label="Resumen de productos">
       <div class="stat"><div class="num" id="count">0</div><small>Productos guardados</small></div>
@@ -72,21 +74,22 @@
 </div>
 
 <div class="modal-back" id="modalBack" aria-hidden="true">
-  <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalDescription">
     <h2 id="modalTitle">Añadir producto</h2>
+    <p id="modalDescription" class="help-text">Los campos marcados como obligatorios deben completarse.</p>
     <form id="productForm">
-      <label for="name">Nombre del producto</label>
-      <input id="name" required placeholder="Ej. Sony WH-1000XM6">
+      <label for="name">Nombre del producto <span aria-hidden="true">*</span><span class="sr-only"> (obligatorio)</span></label>
+      <input id="name" name="name" autocomplete="off" required aria-required="true" placeholder="Ej. Sony WH-1000XM6">
       <label for="brand">Marca</label>
-      <input id="brand" placeholder="Ej. Sony">
-      <label for="price">Precio actual (€)</label>
-      <input id="price" type="number" min="0" step="0.01" required placeholder="299">
+      <input id="brand" name="brand" autocomplete="organization" placeholder="Ej. Sony">
+      <label for="price">Precio actual (€) <span aria-hidden="true">*</span><span class="sr-only"> (obligatorio)</span></label>
+      <input id="price" name="price" type="number" min="0" step="0.01" required aria-required="true" inputmode="decimal" placeholder="299">
       <label for="oldPrice">Precio anterior (€)</label>
-      <input id="oldPrice" type="number" min="0" step="0.01" placeholder="349">
+      <input id="oldPrice" name="oldPrice" type="number" min="0" step="0.01" inputmode="decimal" placeholder="349">
       <label for="category">Categoría</label>
-      <input id="category" placeholder="Tecnología">
+      <input id="category" name="category" placeholder="Tecnología">
       <label for="url">URL del producto</label>
-      <input id="url" type="url" placeholder="https://...">
+      <input id="url" name="url" type="url" inputmode="url" placeholder="https://...">
       <div class="modal-actions">
         <button type="button" class="cancel" id="closeModal">Cancelar</button>
         <button class="primary" type="submit">Guardar producto</button>
@@ -94,6 +97,6 @@
     </form>
   </section>
 </div>
-<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 </body>
 </html>

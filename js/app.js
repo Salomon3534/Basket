@@ -16,6 +16,7 @@ try {
 let activeFilter = "all";
 let activeCat = null;
 let toastTimer;
+let lastFocusedElement = null;
 
 const $ = id => document.getElementById(id);
 
@@ -60,7 +61,7 @@ function render() {
   $("buyAll").disabled = !products.some(p => !p.bought);
   $("products").innerHTML = list.length
     ? list.map(card).join("")
-    : '<div class="empty">No hay productos que coincidan con tu búsqueda.</div>';
+    : '<div class="empty" role="status">No hay productos que coincidan con tu búsqueda.</div>';
 }
 function card(p) {
   const d = discount(p);
@@ -74,7 +75,7 @@ function card(p) {
       <div><span class="price">${euro(p.price)}</span>${p.old ? `<span class="old">${euro(p.old)}</span>` : ""}${d ? `<span class="discount">-${d}%</span>` : ""}</div>
       <div class="shops">${shops.map((s, i) => `<div class="shop ${i === 0 ? "best" : ""}"><span>${esc(s[0])}</span><b>${euro(s[1])}</b></div>`).join("")}</div>
       <div class="actions">
-        <button class="buy" type="button" onclick="buy(${p.id})">${p.bought ? "✓ Comprado" : "🛒 Marcar comprado"}</button>
+        <button class="buy" type="button" aria-pressed="${!!p.bought}" aria-label="${p.bought ? "Marcar como pendiente" : "Marcar como comprado"}: ${esc(p.name)}" onclick="buy(${p.id})">${p.bought ? "✓ Comprado" : "🛒 Marcar comprado"}</button>
         <button class="icon" type="button" aria-label="Editar ${esc(p.name)}" onclick="edit(${p.id})">✎</button>
         <button class="icon" type="button" aria-label="Eliminar ${esc(p.name)}" onclick="removeProduct(${p.id})">🗑</button>
       </div>
@@ -125,6 +126,7 @@ function toast(message) {
   toastTimer = setTimeout(() => $("toast").classList.remove("show"), 2400);
 }
 function openModal(p = null) {
+  lastFocusedElement = document.activeElement;
   $("modalTitle").textContent = p ? "Editar producto" : "Añadir producto";
   $("modalBack").classList.add("open");
   $("modalBack").setAttribute("aria-hidden", "false");
@@ -138,8 +140,12 @@ function openModal(p = null) {
   $("name").focus();
 }
 function closeModal() {
+  const wasOpen = $("modalBack").classList.contains("open");
   $("modalBack").classList.remove("open");
   $("modalBack").setAttribute("aria-hidden", "true");
+  if (wasOpen && lastFocusedElement && typeof lastFocusedElement.focus === "function") {
+    lastFocusedElement.focus();
+  }
 }
 function edit(id) {
   const p = products.find(x => x.id === id);
@@ -184,7 +190,25 @@ $("modalBack").addEventListener("click", e => {
   if (e.target === $("modalBack")) closeModal();
 });
 document.addEventListener("keydown", e => {
-  if (e.key === "Escape") closeModal();
+  if (!$("modalBack").classList.contains("open")) return;
+  if (e.key === "Escape") {
+    closeModal();
+    return;
+  }
+  if (e.key === "Tab") {
+    const focusable = [...$("modalBack").querySelectorAll('button:not([disabled]), input:not([disabled]), select:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])')]
+      .filter(el => el.offsetParent !== null);
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  }
 });
 $("search").addEventListener("input", render);
 $("sort").addEventListener("change", render);
