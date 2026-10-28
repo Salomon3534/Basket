@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ShopHub — Centralizador de compras</title>
+  <style>
+    *{box-sizing:border-box}
+    :root{
+      --bg:#f5f7fb;--card:#fff;--text:#172033;--muted:#6d7688;
+      --line:#e6e9f0;--primary:#5b5ce2;--green:#15945b;--red:#e04b55;
+      --shadow:0 8px 30px rgba(25,35,60,.07)
+    }
+    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;background:var(--bg);color:var(--text)}
+    button,input,select{font:inherit}
+    button{cursor:pointer}
+    .app{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+    aside{background:#fff;border-right:1px solid var(--line);padding:25px 18px;position:sticky;top:0;height:100vh}
+    .logo{font-size:22px;font-weight:800;margin:4px 10px 28px}.logo span{color:var(--primary)}
+    .nav button{display:block;width:100%;border:0;background:transparent;text-align:left;padding:12px 13px;border-radius:10px;color:#5d6678;margin:3px 0}
+    .nav button.active,.nav button:hover{background:#eef0ff;color:var(--primary);font-weight:650}
+    .section-title{font-size:11px;color:#a0a6b3;font-weight:700;letter-spacing:.08em;margin:27px 12px 9px}
+    .add-source{color:var(--primary)!important}
+    main{padding:26px 34px;max-width:1400px;width:100%;margin:auto}
+    header{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:26px}
+    .search{position:relative;flex:1;max-width:540px}.search input{width:100%;padding:13px 16px 13px 42px;border:1px solid var(--line);border-radius:12px;background:#fff;outline:none}.search span{position:absolute;left:15px;top:12px}
+    .avatar{width:40px;height:40px;border-radius:50%;background:#e9eaff;display:grid;place-items:center;font-weight:700;color:var(--primary)}
+    .hero{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}.hero h1{margin:0 0 5px;font-size:28px}.hero p{margin:0;color:var(--muted)}
+    .primary{background:var(--primary);color:#fff;border:0;padding:12px 17px;border-radius:10px;font-weight:650;box-shadow:0 5px 14px rgba(91,92,226,.2)}
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;margin-bottom:25px}
+    .stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;box-shadow:var(--shadow)}.stat .num{font-size:27px;font-weight:800}.stat small{color:var(--muted)}
+    .toolbar{display:flex;gap:10px;align-items:center;margin-bottom:17px;flex-wrap:wrap}.toolbar h2{font-size:18px;margin-right:auto}.toolbar select{border:1px solid var(--line);background:#fff;border-radius:9px;padding:9px 11px;color:#586174}
+    .products{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+    .product{background:#fff;border:1px solid var(--line);border-radius:15px;padding:16px;display:grid;grid-template-columns:120px 1fr;gap:17px;box-shadow:var(--shadow);position:relative}
+    .pic{height:125px;border-radius:11px;background:linear-gradient(135deg,#eef0f8,#f9fafc);display:grid;place-items:center;font-size:52px}
+    .product h3{font-size:17px;margin:0 35px 5px 0}.brand{color:var(--muted);font-size:13px;margin-bottom:12px}
+    .price{font-size:23px;font-weight:800}.old{text-decoration:line-through;color:#a3a9b4;font-size:13px;margin-left:7px}.discount{color:var(--green);font-size:12px;font-weight:700;margin-left:7px}
+    .shops{margin:12px 0;border-top:1px solid var(--line);padding-top:9px}.shop{display:flex;justify-content:space-between;font-size:12px;padding:3px 0}.shop b{font-size:12px}.best{color:var(--green);font-weight:700}
+    .actions{display:flex;gap:8px}.buy{border:0;background:#172033;color:#fff;border-radius:8px;padding:9px 12px;font-size:12px;font-weight:650}.icon{border:1px solid var(--line);background:#fff;border-radius:8px;padding:8px 10px}
+    .heart{position:absolute;right:14px;top:14px;border:0;background:transparent;font-size:20px}.heart.on{color:#e04b55}
+    .empty{grid-column:1/-1;text-align:center;background:#fff;border:1px dashed #ccd1dc;border-radius:14px;padding:50px;color:var(--muted)}
+    .modal-back{display:none;position:fixed;inset:0;background:rgba(18,25,40,.42);align-items:center;justify-content:center;padding:20px;z-index:10}.modal-back.open{display:flex}
+    .modal{background:#fff;border-radius:16px;width:min(500px,100%);padding:24px;box-shadow:0 20px 70px rgba(0,0,0,.2)}.modal h2{margin-top:0}.modal label{display:block;font-size:13px;font-weight:650;margin:13px 0 6px}.modal input{width:100%;padding:11px;border:1px solid var(--line);border-radius:9px}.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:20px}.cancel{border:1px solid var(--line);background:#fff;border-radius:9px;padding:10px 14px}
+    .toast{position:fixed;right:22px;bottom:22px;background:#172033;color:#fff;padding:12px 16px;border-radius:10px;display:none;z-index:20}.toast.show{display:block}
+    @media(max-width:900px){.app{grid-template-columns:1fr}aside{display:none}.products{grid-template-columns:1fr}main{padding:20px}.stats{grid-template-columns:1fr}}
+    @media(max-width:520px){.product{grid-template-columns:1fr}.pic{height:150px}.hero{align-items:flex-start;gap:15px;flex-direction:column}}
+  </style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <div class="logo">Shop<span>Hub</span></div>
+    <div class="nav">
+      <button class="active" data-filter="all">🏠 Inicio</button>
+      <button data-filter="favorites">⭐ Favoritos</button>
+      <button data-filter="pending">🛒 Por comprar</button>
+      <button data-filter="offers">💰 Ofertas</button>
+    </div>
+    <div class="section-title">CATEGORÍAS</div>
+    <div class="nav">
+      <button data-cat="Tecnología">📱 Tecnología</button>
+      <button data-cat="Informática">🖥️ Informática</button>
+      <button data-cat="Gaming">🎮 Gaming</button>
+      <button data-cat="Hogar">🏠 Hogar</button>
+    </div>
+    <div class="section-title">FUENTES</div>
+    <div class="nav"><button class="add-source" id="addSource">＋ Añadir fuente</button></div>
+  </aside>
+
+  <main>
+    <header>
+      <div class="search">🔍 <input id="search" placeholder="Buscar productos, marcas o tiendas..."></div>
+      <div class="avatar">JR</div>
+    </header>
+
+    <section class="hero">
+      <div><h1>Mi lista de compras</h1><p>Todos tus productos y precios en un solo lugar.</p></div>
+      <button class="primary" id="addProduct">＋ Añadir producto</button>
+    </section>
+
+    <section class="stats">
+      <div class="stat"><div class="num" id="count">0</div><small>Productos guardados</small></div>
+      <div class="stat"><div class="num" id="pending">0</div><small>Por comprar</small></div>
+      <div class="stat"><div class="num" id="offers">0</div><small>En oferta</small></div>
+    </section>
+
+    <div class="toolbar">
+      <h2>Mis productos</h2>
+      <select id="sort"><option value="default">Más recientes</option><option value="price">Precio menor</option><option value="discount">Mayor descuento</option></select>
+    </div>
+
+    <section class="products" id="products"></section>
+  </main>
+</div>
+
+<div class="modal-back" id="modalBack">
+  <div class="modal">
+    <h2 id="modalTitle">Añadir producto</h2>
+    <form id="productForm">
+      <label>Nombre del producto</label><input id="name" required placeholder="Ej. Sony WH-1000XM6">
+      <label>Marca</label><input id="brand" placeholder="Ej. Sony">
+      <label>Precio actual (€)</label><input id="price" type="number" step="0.01" required placeholder="299">
+      <label>Precio anterior (€)</label><input id="oldPrice" type="number" step="0.01" placeholder="349">
+      <label>Categoría</label><input id="category" placeholder="Tecnología">
+      <label>URL del producto</label><input id="url" type="url" placeholder="https://...">
+      <div class="modal-actions"><button type="button" class="cancel" id="closeModal">Cancelar</button><button class="primary">Guardar producto</button></div>
+    </form>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const defaultProducts = [
+  {id:1,name:"Sony WH-1000XM6",brand:"Sony",price:299,old:349,category:"Tecnología",icon:"🎧",shops:[["Amazon",299],["MediaMarkt",309],["El Corte Inglés",319]],fav:true,bought:false,url:"#"},
+  {id:2,name:"iPhone 17 Pro",brand:"Apple",price:1299,old:1399,category:"Tecnología",icon:"📱",shops:[["Amazon",1299],["MediaMarkt",1349],["PcComponentes",1329]],fav:false,bought:false,url:"#"},
+  {id:3,name:"RTX 5070",brand:"NVIDIA",price:649,old:699,category:"Informática",icon:"🖥️",shops:[["PcComponentes",649],["Amazon",669]],fav:false,bought:false,url:"#"},
+  {id:4,name:"DualSense",brand:"Sony",price:54.99,old:74.99,category:"Gaming",icon:"🎮",shops:[["Amazon",54.99],["MediaMarkt",59.99]],fav:true,bought:false,url:"#"}
+];
+let products = JSON.parse(localStorage.getItem("shophub-products") || "null") || defaultProducts;
+let activeFilter="all", activeCat=null;
+
+const $=id=>document.getElementById(id);
+function save(){localStorage.setItem("shophub-products",JSON.stringify(products));}
+function discount(p){return p.old>p.price ? Math.round((1-p.price/p.old)*100):0}
+function euro(n){return new Intl.NumberFormat("es-ES",{style:"currency",currency:"EUR"}).format(n)}
+function render(){
+  let q=$("search").value.toLowerCase().trim();
+  let list=products.filter(p=>{
+    const text=(p.name+" "+p.brand+" "+p.category+" "+p.shops.map(x=>x[0]).join(" ")).toLowerCase();
+    if(q&&!text.includes(q)) return false;
+    if(activeFilter==="favorites"&&!p.fav)return false;
+    if(activeFilter==="pending"&&p.bought)return false;
+    if(activeFilter==="offers"&&!discount(p))return false;
+    if(activeCat&&p.category!==activeCat)return false;
+    return true;
+  });
+  const sort=$("sort").value;
+  if(sort==="price")list.sort((a,b)=>a.price-b.price);
+  if(sort==="discount")list.sort((a,b)=>discount(b)-discount(a));
+  $("count").textContent=products.length;
+  $("pending").textContent=products.filter(p=>!p.bought).length;
+  $("offers").textContent=products.filter(p=>discount(p)).length;
+  $("products").innerHTML=list.length?list.map(card).join('<div style="height:1px"></div>'):'<div class="empty">No hay productos que coincidan con tu búsqueda.</div>';
+}
+function card(p){
+  const d=discount(p);
+  return `<article class="product">
+    <button class="heart ${p.fav?'on':''}" onclick="toggleFav(${p.id})">${p.fav?'♥':'♡'}</button>
+    <div class="pic">${p.icon||'🛍️'}</div>
+    <div>
+      <h3>${esc(p.name)}</h3><div class="brand">${esc(p.brand||'Sin marca')} · ${esc(p.category||'Sin categoría')}</div>
+      <div><span class="price">${euro(p.price)}</span>${p.old?`<span class="old">${euro(p.old)}</span>`:''}${d?`<span class="discount">-${d}%</span>`:''}</div>
+      <div class="shops">${p.shops.map((s,i)=>`<div class="shop ${i===0?'best':''}"><span>${esc(s[0])}</span><b>${euro(s[1])}</b></div>`).join('')}</div>
+      <div class="actions"><button class="buy" onclick="buy(${p.id})">${p.bought?'✓ Comprado':'🛒 Comprar'}</button><button class="icon" onclick="edit(${p.id})">✎</button><button class="icon" onclick="removeProduct(${p.id})">🗑</button></div>
+    </div>
+  </article>`;
+}
+function esc(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
+function toggleFav(id){const p=products.find(x=>x.id===id);p.fav=!p.fav;save();render()}
+function buy(id){const p=products.find(x=>x.id===id);p.bought=!p.bought;save();toast(p.bought?'Producto marcado como comprado':'Producto vuelto a pendiente');render()}
+function removeProduct(id){if(confirm('¿Eliminar este producto?')){products=products.filter(p=>p.id!==id);save();render()}}
+function toast(t){$("toast").textContent=t;$("toast").classList.add("show");setTimeout(()=>$("toast").classList.remove("show"),1800)}
+function openModal(p=null){
+  $("modalTitle").textContent=p?'Editar producto':'Añadir producto'; $("modalBack").classList.add("open");
+  $("productForm").dataset.id=p?p.id:'';
+  $("name").value=p?.name||'';$("brand").value=p?.brand||'';$("price").value=p?.price||'';$("oldPrice").value=p?.old||'';$("category").value=p?.category||'';$("url").value=p?.url||'';
+}
+function closeModal(){$("modalBack").classList.remove("open")}
+function edit(id){openModal(products.find(p=>p.id===id))}
+$("productForm").addEventListener("submit",e=>{
+ e.preventDefault();const id=+$("productForm").dataset.id;
+ const data={name:$("name").value,brand:$("brand").value,price:+$("price").value,old:+$("oldPrice").value||0,category:$("category").value||"Otros",url:$("url").value||"#",icon:"🛍️",shops:[["Tienda añadida",+$("price").value]],fav:false,bought:false};
+ if(id){Object.assign(products.find(p=>p.id===id),data)}else{data.id=Date.now();products.unshift(data)}
+ save();closeModal();render();toast("Producto guardado");
+});
+$("addProduct").onclick=()=>openModal();$("closeModal").onclick=closeModal;
+$("modalBack").onclick=e=>{if(e.target===$("modalBack"))closeModal()};
+$("search").oninput=render;$("sort").onchange=render;
+document.querySelectorAll("[data-filter]").forEach(b=>b.onclick=()=>{activeFilter=b.dataset.filter;activeCat=null;document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("active"));b.classList.add("active");render()});
+document.querySelectorAll("[data-cat]").forEach(b=>b.onclick=()=>{activeCat=b.dataset.cat;activeFilter="all";document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("active"));b.classList.add("active");render()});
+$("addSource").onclick=()=>toast("Demo: aquí conectaríamos RSS, APIs o scraping autorizado.");
+render();
+</script>
+</body>
+</html>
